@@ -1,9 +1,13 @@
+from lib2to3.refactor import RefactoringTool
+
 import librosa
 import numpy as np
 from data_pipeline import N_MELS, N_FFT, HOP_LENGTH, SR, CHUNK_SECONDS, CHUNK_SIZE
 import tensorflow as tf
 import pretty_midi
-from data_pipeline import HOP_LENGTH, SR
+
+REFRACTORY = 2
+MIN_NOTE_FRAMES = 2
 
 def generate_chunks(audio_path):
     y, sr = librosa.load(audio_path, sr=SR)
@@ -53,28 +57,34 @@ def predict_chunks(chunks, last_chunk_real_length):
 
     return frame_roll, onset_roll
 
-def roll_to_notes(frame_roll, onset_roll, hop_length=HOP_LENGTH, sr=SR, velocity=100):
+def roll_to_notes(frame_roll, onset_roll, hop_length=HOP_LENGTH, sr=SR, velocity=100, refractory=REFRACTORY):
     # binary_roll shape: (frames, 88), values 0 or 1
     notes = []
     n_frames = frame_roll.shape[0] # no need for n_onsets, it's gonna be identical
-
     for pitch_idx in range(88):
         frame_column = frame_roll[:, pitch_idx]
         onset_column = onset_roll[:, pitch_idx]
         in_run = False
         start_frame = 0
-
+        last_onset_frame = -999
         for frame in range(n_frames):
-            if onset_column[frame] == 1 and in_run:
-                # re-strike: close current note, immediately start a new one
+            onset_now = onset_column[frame] == 1
+            is_new_onset = onset_now and (frame - last_onset_frame) > refractory
+
+            if is_new_onset and in_run and (frame - start_frame) > MIN_NOTE_FRAMES:
                 notes.append(_make_note(pitch_idx, start_frame, frame, hop_length, sr, velocity))
                 start_frame = frame
+                last_onset_frame = frame
+            elif is_new_onset and in_run:
+                last_onset_frame = frame
+            elif is_new_onset and not in_run:
+                in_run = True
+                start_frame = frame
+                last_onset_frame = frame
             elif frame_column[frame] == 1 and not in_run:
-                # run starts (frame-fallback: note begins even without an onset)
                 in_run = True
                 start_frame = frame
             elif frame_column[frame] == 0 and in_run:
-                # key released, note ends
                 in_run = False
                 notes.append(_make_note(pitch_idx, start_frame, frame, hop_length, sr, velocity))
         if in_run:
@@ -98,10 +108,10 @@ def notes_to_midi(notes, out_path):
     pm.write(out_path)
 
 def main():
-    chunks, last_len = generate_chunks('field.wav')
+    chunks, last_len = generate_chunks('queen.wav')
     frame_roll, onset_roll = predict_chunks(chunks, last_len)
-    frame_binary = (frame_roll > 0.7).astype(int)
-    onset_binary = (onset_roll > 0.3).astype(int)
+    frame_binary = (frame_roll > 0.8).astype(int)
+    onset_binary = (onset_roll > 0.5).astype(int)
     notes = roll_to_notes(frame_binary, onset_roll=onset_binary)
     notes_to_midi(notes, 'output/output.mid')
 
