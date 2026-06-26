@@ -3,7 +3,7 @@
 # Maestro2MIDI
 
 Polyphonic piano transcription: converts piano audio (`.wav`) into MIDI using a
-U-Net with dual onset and frame detection heads, trained on MAESTRO v3.0.0.
+U-Net with dual onset and frame detection heads, trained on MAESTRO v3.0.0, spiritual successor of [NSynth2MIDI](https://github.com/AmineWallah/nsynth2midi)
 
 Built using mainly TensorFlow 2.0 and Keras. (full list of dependencies in
 `pyproject.toml`)
@@ -47,8 +47,8 @@ python render.py   # edit the input path in main()
 
 ## To-Do list
 - Remove all the comments that r fucking stupid and replace them with appropriate ones
-- Stop using bum ass swear words in the README.md
-- Add proper evaluation
+- Stop using bum ass swear words in the README.md AND code comments
+- Publish evaluation metrics results
 - More detailed overview of the architecture
 - Limitations of the model/challenges faced
 - CLI version
