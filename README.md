@@ -48,7 +48,7 @@ python render.py   # edit the input path in main()
 ## To-Do list
 - Remove all the comments that r fucking stupid and replace them with appropriate ones
 - Stop using bum ass swear words in the README.md AND code comments
-- Add proper evaluation
+- Publish evaluation metrics results
 - More detailed overview of the architecture
 - Limitations of the model/challenges faced
 - CLI version
