@@ -1,0 +1,23 @@
+# Data & models — too large for git
+*.h5
+*.keras
+maestro-dataset/
+backup/
+old-models/
+output/
+
+# Audio
+*.wav
+*.mid
+
+# Logs
+*.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.idea/
+
+# stuff
+test.py
