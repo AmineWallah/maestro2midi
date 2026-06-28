@@ -3,6 +3,7 @@ import numpy as np
 from data_pipeline import N_MELS, N_FFT, HOP_LENGTH, SR, CHUNK_SECONDS, CHUNK_SIZE
 import tensorflow as tf
 import pretty_midi
+import os
 
 REFRACTORY = 2
 MIN_NOTE_FRAMES = 2
@@ -36,8 +37,8 @@ def generate_chunks(audio_path):
 
     return chunks, last_chunk_real_length
 
-def predict_chunks(chunks, last_chunk_real_length):
-    model = tf.keras.models.load_model('best_model.keras')
+def predict_chunks(chunks, last_chunk_real_length, model_path='best_model.keras'):
+    model = tf.keras.models.load_model(model_path)
 
     batch = np.stack(chunks)
     batch = batch[..., np.newaxis]
@@ -55,7 +56,7 @@ def predict_chunks(chunks, last_chunk_real_length):
 
     return frame_roll, onset_roll
 
-def roll_to_notes(frame_roll, onset_roll, hop_length=HOP_LENGTH, sr=SR, velocity=100, refractory=REFRACTORY):
+def roll_to_notes(frame_roll, onset_roll, hop_length=HOP_LENGTH, sr=SR, velocity=100, refractory=REFRACTORY, min_note_frames=MIN_NOTE_FRAMES):
     # binary_roll shape: (frames, 88), values 0 or 1
     notes = []
     n_frames = frame_roll.shape[0] # no need for n_onsets, it's gonna be identical
@@ -69,7 +70,7 @@ def roll_to_notes(frame_roll, onset_roll, hop_length=HOP_LENGTH, sr=SR, velocity
             onset_now = onset_column[frame] == 1
             is_new_onset = onset_now and (frame - last_onset_frame) > refractory
 
-            if is_new_onset and in_run and (frame - start_frame) > MIN_NOTE_FRAMES:
+            if is_new_onset and in_run and (frame - start_frame) > min_note_frames:
                 notes.append(_make_note(pitch_idx, start_frame, frame, hop_length, sr, velocity))
                 start_frame = frame
                 last_onset_frame = frame
@@ -105,13 +106,23 @@ def notes_to_midi(notes, out_path):
     pm.instruments.append(piano)
     pm.write(out_path)
 
-def main():
-    chunks, last_len = generate_chunks('queen.wav')
+def render(audio_path, output_path='./', frame_threshold=0.8, onset_threshold=0.5, refractory=REFRACTORY, min_note_frames=MIN_NOTE_FRAMES):
+    chunks, last_len = generate_chunks(audio_path)
+
     frame_roll, onset_roll = predict_chunks(chunks, last_len)
-    frame_binary = (frame_roll > 0.8).astype(int)
-    onset_binary = (onset_roll > 0.5).astype(int)
-    notes = roll_to_notes(frame_binary, onset_roll=onset_binary)
-    notes_to_midi(notes, 'output/output.mid')
+
+    frame_binary = (frame_roll > frame_threshold).astype(int)
+    onset_binary = (onset_roll > onset_threshold).astype(int)
+
+    notes = roll_to_notes(frame_binary, onset_roll=onset_binary, refractory=refractory, min_note_frames=min_note_frames)
+
+    basename = os.path.splitext(os.path.basename(audio_path))[0]
+    output_file_path = os.path.join(output_path, basename + '.mid')
+    notes_to_midi(notes, output_file_path)
+
+def main():
+    render('queen.wav')
+    pass
 
 
 if __name__ == "__main__":
