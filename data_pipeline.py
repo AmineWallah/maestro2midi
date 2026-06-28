@@ -157,9 +157,6 @@ def main():
     validation_pairs = get_pairs(validation_df)
     test_pairs = get_pairs(test_df)
 
-    chunks = process_file_pair(*train_pairs[0])
-    spec_chunk, roll_chunk, onset_chunk = chunks[0]
-
     process_split(train_pairs, 'train', 'maestro_chunks.h5')
     process_split(validation_pairs, 'validation', 'maestro_chunks.h5')
     process_split(test_pairs, 'test', 'maestro_chunks.h5')
