@@ -1,9 +1,10 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import librosa
 import numpy as np
 from data_pipeline import N_MELS, N_FFT, HOP_LENGTH, SR, CHUNK_SECONDS, CHUNK_SIZE
 import tensorflow as tf
 import pretty_midi
-import os
 
 REFRACTORY = 2
 MIN_NOTE_FRAMES = 2
