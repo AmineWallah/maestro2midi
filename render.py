@@ -120,11 +120,3 @@ def render(audio_path, output_path='./', frame_threshold=0.8, onset_threshold=0.
     basename = os.path.splitext(os.path.basename(audio_path))[0]
     output_file_path = os.path.join(output_path, basename + '.mid')
     notes_to_midi(notes, output_file_path)
-
-def main():
-    render('queen.wav')
-    pass
-
-
-if __name__ == "__main__":
-    main()
