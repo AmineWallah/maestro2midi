@@ -15,7 +15,7 @@ def main():
         },
         loss_weights={
             'frame_output': 1.0,
-            'onset_output': 1.0,  # bump this up (e.g. 2.0) if onsets undertrain
+            'onset_output': 1.0,  # bump this up (e.g. 2.0) if onsets undertrains
         },
         metrics={
             'frame_output': [tf.keras.metrics.Precision(name='precision'),
