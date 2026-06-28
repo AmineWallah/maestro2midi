@@ -106,10 +106,10 @@ def notes_to_midi(notes, out_path):
     pm.instruments.append(piano)
     pm.write(out_path)
 
-def render(audio_path, output_path='./', frame_threshold=0.8, onset_threshold=0.5, refractory=REFRACTORY, min_note_frames=MIN_NOTE_FRAMES):
+def render(audio_path, output_path='./', frame_threshold=0.8, onset_threshold=0.5, refractory=REFRACTORY, min_note_frames=MIN_NOTE_FRAMES, model_path='best_model.keras'):
     chunks, last_len = generate_chunks(audio_path)
 
-    frame_roll, onset_roll = predict_chunks(chunks, last_len)
+    frame_roll, onset_roll = predict_chunks(chunks, last_len, model_path=model_path)
 
     frame_binary = (frame_roll > frame_threshold).astype(int)
     onset_binary = (onset_roll > onset_threshold).astype(int)
