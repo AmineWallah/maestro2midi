@@ -30,7 +30,7 @@ def process_file_pair(midi_path, audio_path):
     piano_roll = piano_roll[21:109]
     piano_roll = (piano_roll > 0).astype(np.float32)
 
-    # number. frames for onset detection
+    # 3. frames for onset detection
     onset_roll = np.zeros_like(piano_roll)
     for note in midi.instruments[0].notes:
         frame = int(round(note.start * SR / HOP_LENGTH))
@@ -39,13 +39,13 @@ def process_file_pair(midi_path, audio_path):
             onset_roll[pitch_idx, frame] = 1
 
 
-    # 3. Trimming
+    # 4. Trimming
     min_frames = min(mel_spec_db.shape[1], piano_roll.shape[1])
     mel_spec_db = mel_spec_db[:, :min_frames]
     piano_roll = piano_roll[:, :min_frames]
     onset_roll = onset_roll[:, :min_frames]
 
-    # 4. Chunking
+    # 5. Chunking
     n_chunks = min_frames // CHUNK_SIZE
 
     chunks = []
@@ -60,6 +60,7 @@ def process_file_pair(midi_path, audio_path):
     return chunks
 
 def process_split(sets, split_name, hdf5_file):
+    # Saving extracted features in h5 file
     with h5py.File(hdf5_file, 'a') as f:
         if f"{split_name}/spectrograms" not in f:
             f.create_dataset(
@@ -88,7 +89,7 @@ def process_split(sets, split_name, hdf5_file):
                 roll_chunks = np.array([chunk[1] for chunk in chunks])
                 onset_chunks = np.array([chunk[2] for chunk in chunks])
 
-                current_size = f[f"{split_name}/spectrograms"].shape[0]  # Is same for both piano rolls and spectrograms
+                current_size = f[f"{split_name}/spectrograms"].shape[0]
 
                 f[f'{split_name}/spectrograms'].resize(current_size + len(chunks), axis=0)
                 f[f'{split_name}/spectrograms'][current_size:] = spec_chunks
@@ -109,7 +110,7 @@ class MAESTROGenerator(tf.keras.utils.Sequence):
         with h5py.File(self.hdf5_path, 'r') as f:
             self.total_chunks = f[f"{self.split}/spectrograms"].shape[0]
 
-        # Shuffling part
+        # Shuffling indices to avoid model bias
         self.indices = np.arange(self.total_chunks)
         np.random.shuffle(self.indices)
 
@@ -156,14 +157,8 @@ def main():
     validation_pairs = get_pairs(validation_df)
     test_pairs = get_pairs(test_df)
 
-    # train_pairs = get_pairs(train_df)[:10]
-    # validation_pairs = get_pairs(validation_df)[:5]
-    # test_pairs = get_pairs(test_df)[:5]
-
     chunks = process_file_pair(*train_pairs[0])
     spec_chunk, roll_chunk, onset_chunk = chunks[0]
-
-    # This is where the processing happens
 
     process_split(train_pairs, 'train', 'maestro_chunks.h5')
     process_split(validation_pairs, 'validation', 'maestro_chunks.h5')
