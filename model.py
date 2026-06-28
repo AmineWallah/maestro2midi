@@ -64,13 +64,11 @@ def build_unet(input_shape=(128, CHUNK_SIZE, 1)):
     x = decoder_block(x, skip1, 32)
 
     # Output layer
-    # x shape at this point: (batch, 128, 156, 32)
-
     # Move time dimension to front so we can flatten freq × channels per time step
-    x = tf.keras.layers.Permute((2, 1, 3))(x)  # → (batch, 156, 128, 32)
+    x = tf.keras.layers.Permute((2, 1, 3))(x)
 
     # Flatten frequency and channel dimensions together, shared features both heads see
-    shared = tf.keras.layers.Reshape((CHUNK_SIZE, 128 * 32))(x)  # → (batch, 156, 4096)
+    shared = tf.keras.layers.Reshape((CHUNK_SIZE, 128 * 32))(x)
 
     # Project down to 88 piano key predictions per time frame
     frame_output = tf.keras.layers.Dense(88, activation='sigmoid', name='frame_output')(shared)
