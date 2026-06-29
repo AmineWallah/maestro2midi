@@ -4,7 +4,7 @@ import os
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('audio_path', type=str, help='Path to the audio file to render (must be .wav)')
+    parser.add_argument('audio_path', type=str, help='Path to the audio file to render')
     parser.add_argument('-o', '--output_path', type=str, default='./', help='Path to the output directory (default: current directory)')
     parser.add_argument('-ft', '--frame_threshold', type=float, default=0.8, help='Threshold for frame prediction (default: 0.8)')
     parser.add_argument('-ot', '--onset_threshold', type=float, default=0.5, help='Threshold for onset prediction (default: 0.5)')
