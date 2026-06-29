@@ -42,7 +42,10 @@ python data_pipeline.py
 python train.py
 
 # Transcribe an audio file
-python main.py path/to/song.wav -o output/ --frame-threshold 0.7
+python main.py path/to/song.wav
+
+# For a list of arguments, run
+python main.py --help
 ```
 
 ## To-Do list
