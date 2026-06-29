@@ -52,7 +52,6 @@ python main.py --help
 - Publish evaluation metrics results
 - More detailed overview of the architecture
 - Limitations of the model/challenges faced
-- CLI version
 - Potential GUI frontend fork(?)
 
 ## Acknowledgments
